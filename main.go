@@ -112,7 +112,10 @@ func (otc *ostreeConfig) initRepo() error {
 		return err
 	}
 
-	success, err := ostree.Init(otc.FullPath, ostree.NewInitOptions())
+	opts := ostree.NewInitOptions()
+	opts.Mode = "bare-user"
+
+	success, err := ostree.Init(otc.FullPath, opts)
 	if !success {
 		return fmt.Errorf("Could not initialize OSTree repo: %s", err)
 	}
@@ -344,7 +347,7 @@ func (wc *watchClient) explode(imgref, digest string) {
 		commitCfg.Tree = []string{"tar=" + blobpath}
 		commitCfg.TarAutoCreateParents = true
 		//commitCfg.Parent = lastCommit TODO: This should be fixed at some point
-		commitCfg.Fsync = false
+		commitCfg.Fsync = true
 		commit, err := ostree.Commit(repo, "", branch, commitCfg)
 		if err != nil {
 			ctxLogger.WithFields(log.Fields{
@@ -492,13 +495,12 @@ func (wc *watchClient) imageDeleted(is *imageapi.ImageStream) {
 // Test that we have appropriate privilege for a given client and namespace,
 // otherwise just die.
 func (wc *watchClient) assertAPIPerms() {
-	// TODO: this doesn't feel very Go
 	_, err1 := wc.Client.ImageStreams(wc.Namespace).List(kapi.ListOptions{})
 	_, err2 := wc.Client.Images().List(kapi.ListOptions{})
 	if err1 != nil || err2 != nil {
 		wc.Logger.WithFields(log.Fields{
-			"imagestreamerror": err1,
-			"imageserror":      err2,
+			"ImageStreams": err1,
+			"Images":       err2,
 		}).Fatal("Client does not have appropriate privileges")
 	}
 }

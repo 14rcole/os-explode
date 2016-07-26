@@ -1,0 +1,10 @@
+language: go
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ yakkety universe'
+    packages:
+    - libostree-dev
+go:
+- 1.6
+- tip
